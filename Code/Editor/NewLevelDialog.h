@@ -12,6 +12,9 @@
 #include <QScopedPointer>
 #include <QAbstractButton>
 #include <QDialog>
+#include <QVector>
+
+#include "LevelRoots.h"
 
 namespace Ui {
     class CNewLevelDialog;
@@ -27,6 +30,7 @@ public:
     ~CNewLevelDialog();
 
     QString GetLevel() const;
+    QString GetLevelsFolder() const; // Absolute path of the active root's Levels folder
     bool ValidateLevel();
     QString GetTemplateName() const;
 
@@ -35,7 +39,6 @@ protected:
     void OnInitDialog();
     void ReloadLevelFolder();
     void showEvent(QShowEvent* event) override;
-    QString GetLevelsFolder() const;
     void InitTemplateListWidget() const;
 
 protected slots:
@@ -43,10 +46,20 @@ protected slots:
     void OnClearButtonClicked();
     void PopupAssetPicker();
     void OnStartup();
+    void OnRootSelected(int index);
+
+private:
+    void PopulateRootSelector();
+    const LevelRoots::Root* CurrentRoot() const;
 
 public:
     QString         m_level;
     QString         m_levelFolders;
     QScopedPointer<Ui::CNewLevelDialog> ui;
     bool m_initialized;
+
+private:
+    // Cached list of "Levels" roots (project + active gems with a Levels
+    // folder). Drives the "Root" combo box and GetLevelsFolder().
+    QVector<LevelRoots::Root> m_roots;
 };

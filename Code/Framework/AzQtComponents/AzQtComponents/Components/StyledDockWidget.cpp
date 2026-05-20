@@ -19,6 +19,7 @@
 #include <QPainter>
 #include <QStyleOptionFrame>
 #include <QStylePainter>
+#include <QTimer>
 #include <QWindow>
 
 namespace AzQtComponents

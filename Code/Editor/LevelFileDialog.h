@@ -13,6 +13,9 @@
 
 #include <QDialog>
 #include <QScopedPointer>
+#include <QVector>
+
+#include "LevelRoots.h"
 
 namespace Ui {
     class LevelFileDialog;
@@ -40,6 +43,7 @@ protected Q_SLOTS:
     void OnNewFolder();
     void OnFilterChanged();
     void OnNameChanged();
+    void OnTargetRootChanged(int index);
 protected:
     void ReloadTree();
     bool ValidateSaveLevelPath(QString& errorMessage) const;
@@ -64,6 +68,16 @@ private:
     const bool m_bOpenDialog;
     LevelTreeModel* const m_model;
     LevelTreeModelFilter* const m_filterModel;
+
+    // Absolute path of the root currently driving the dialog. Defaults to
+    // the project's "Levels" folder; updated whenever the tree selection
+    // changes so that the line-edit text is interpreted relative to the
+    // root the user is actually browsing.
+    QString m_selectedRoot;
+    bool m_selectedRootIsProject = true;
+
+    // Save As only: cached root list backing the target combo.
+    QVector<LevelRoots::Root> m_saveTargetRoots;
 };
 
 #endif // CRYINCLUDE_EDITOR_LEVELFILEDIALOG_H

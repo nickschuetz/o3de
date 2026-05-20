@@ -78,6 +78,7 @@ namespace O3DE::ProjectManager
 
         QString m_path;
         QString m_name = "Unknown Gem Name";
+        QString m_altname;
         QString m_displayName;
         QString m_origin = "Unknown Creator";
         GemOrigin m_gemOrigin = Local;

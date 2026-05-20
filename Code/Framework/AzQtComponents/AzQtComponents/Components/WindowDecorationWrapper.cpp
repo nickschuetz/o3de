@@ -186,6 +186,7 @@ namespace AzQtComponents
 
         if (m_options & OptionDisabled)
         {
+            setWindowTitle(guest->windowTitle());
             return;
         }
 

@@ -78,7 +78,7 @@ public:
     static void AboutSystem();
 
 private:
-    static void OpenFile();
+    static void GetMemoryStatusMB(AZ::u32 &totalSystemMemory, AZ::u32& availablePageMemory);
 
     // Attached control(s)
     static QListWidget* m_hWndListBox;
