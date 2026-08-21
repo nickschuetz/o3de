@@ -727,10 +727,20 @@ endmacro()
 # is brought into scope (and if necessary, downloaded.)
 macro(ly_download_associated_package find_library_name)
     unset(package_name)
-    ly_get_package_association(${find_library_name} package_name)
-    if (package_name)
-        # it is an associated package.
-        ly_enable_package(${package_name})
+    # System-library override: when LY_USE_SYSTEM_<NAME> is ON (NAME being the
+    # uppercased find_library_name), skip the bundled-package download entirely
+    # and let the caller's find_package(<find_library_name> REQUIRED MODULE)
+    # resolve a system Find module from CMAKE_MODULE_PATH instead. Opt-in per
+    # package: anything without a flag set (e.g. Python) downloads exactly as
+    # before. Uppercasing keeps one flag spelling (LY_USE_SYSTEM_LUA) working
+    # for mixed-case target names (Lua, RapidJSON, ZLIB, ...).
+    string(TOUPPER "${find_library_name}" ly_download_associated_package_name_upper)
+    if (NOT LY_USE_SYSTEM_${ly_download_associated_package_name_upper})
+        ly_get_package_association(${find_library_name} package_name)
+        if (package_name)
+            # it is an associated package.
+            ly_enable_package(${package_name})
+        endif()
     endif()
 endmacro()
 
