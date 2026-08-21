@@ -71,3 +71,45 @@ ly_add_source_properties(
 ly_create_alias(NAME ${gem_name}.Tools     NAMESPACE Gem TARGETS Gem::${gem_name}.Editor)
 ly_create_alias(NAME ${gem_name}.Builders  NAMESPACE Gem TARGETS Gem::${gem_name}.Editor)
 
+if (LY_PYTHON_USE_SYSTEM AND PAL_PLATFORM_NAME STREQUAL "Linux")
+    # Exercise the add_shiboken_project code generation path against the
+    # system shiboken6 generator and pyside6: wrap a minimal QObject-derived
+    # type into a loadable python module.
+    find_package(pyside6 REQUIRED)
+
+    find_path(spike_qt_system_include_dir NAMES QtCore/QObject PATHS /usr/include/qt6)
+    if (NOT spike_qt_system_include_dir)
+        message(FATAL_ERROR "ShibokenSpike: system Qt6 headers not found (install qt6-qtbase-devel)")
+    endif()
+
+    add_library(ShibokenSpike.Headers INTERFACE)
+    # The system pyside6 headers match the system Qt version, so this target
+    # must compile against the system Qt headers, not the bundled Qt package's
+    # (e.g. pyside6_qtcore_python.h referencing Qt API newer than the bundle).
+    # Plain include directories are searched before the bundled -isystem dirs.
+    target_include_directories(ShibokenSpike.Headers INTERFACE
+        ${CMAKE_CURRENT_LIST_DIR}/ShibokenSpike
+        ${spike_qt_system_include_dir}
+        ${spike_qt_system_include_dir}/QtCore
+        ${spike_qt_system_include_dir}/QtGui
+        ${spike_qt_system_include_dir}/QtWidgets
+    )
+
+    add_shiboken_project(
+        MODULE_NAME azshibokenspike
+        NAME ShibokenSpike
+        NAMESPACE Gem
+        WRAPPED_HEADER ${CMAKE_CURRENT_LIST_DIR}/ShibokenSpike/spike_bindings.h
+        TYPESYSTEM_FILE ${CMAKE_CURRENT_LIST_DIR}/ShibokenSpike/spike_typesystem.xml
+        GENERATED_FILES ${CMAKE_CURRENT_LIST_DIR}/ShibokenSpike/spike_generated_files.cmake
+        LICENSE_HEADER ${CMAKE_CURRENT_LIST_DIR}/ShibokenSpike/spike_license.txt
+        INCLUDE_DIRS
+            ${CMAKE_CURRENT_LIST_DIR}/ShibokenSpike
+            ${spike_qt_system_include_dir}
+            ${spike_qt_system_include_dir}/QtCore
+        DEPENDENCIES
+            ShibokenSpike.Headers
+            3rdParty::Python
+    )
+endif()
+
