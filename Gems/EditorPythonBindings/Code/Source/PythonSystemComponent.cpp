@@ -313,7 +313,14 @@ namespace EditorPythonBindings
         // to be locked) and therefore it's already got the GIL acquired.
         if (m_lockRecursiveCounter == 1)
         {
-            m_releaseGIL = AZStd::make_unique<pybind11::gil_scoped_release>();
+            // gil_scoped_release requires the calling thread to hold the GIL
+            // (it calls PyEval_SaveThread, which needs a current thread state).
+            // A thread that has never entered python yet has no thread state,
+            // so it must skip straight to the acquire, which creates one.
+            if (PyGILState_Check())
+            {
+                m_releaseGIL = AZStd::make_unique<pybind11::gil_scoped_release>();
+            }
             m_acquireGIL = AZStd::make_unique<pybind11::gil_scoped_acquire>();
         }
     }
@@ -642,12 +649,16 @@ namespace EditorPythonBindings
             oldPathSet.emplace(pathEntry.cast<std::string>().c_str());
         }
         bool appended{ false };
-        AZStd::string pathAppend{ "import sys\n" };
+        // site.addsitedir instead of sys.path.append: it also executes any
+        // .pth files in the added directory, which is how pip's PEP 660
+        // editable installs (__editable__.*.pth import hooks) become
+        // importable; a plain sys.path entry never runs them.
+        AZStd::string pathAppend{ "import sys\nimport site\n" };
         for (const auto& thisStr : extendPaths)
         {
             if (!oldPathSet.contains(thisStr))
             {
-                pathAppend.append(AZStd::string::format("sys.path.append(r'%s')\n", thisStr.c_str()));
+                pathAppend.append(AZStd::string::format("site.addsitedir(r'%s')\n", thisStr.c_str()));
                 appended = true;
             }
         }

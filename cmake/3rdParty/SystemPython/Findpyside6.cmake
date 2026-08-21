@@ -81,6 +81,15 @@ set_target_properties(${TARGET_WITH_NAMESPACE} PROPERTIES
     IMPORTED_LOCATION "${${MY_NAME}_SYSTEM_LIBRARY}"
 )
 
+# Consumed by the Linux QtForPython code that preloads the pyside/shiboken
+# libraries by name (InitializeEmbeddedPyside.h); full paths are valid dlopen
+# arguments and sidestep SOABI-tagged file names.
+target_compile_definitions(${TARGET_WITH_NAMESPACE}
+    INTERFACE
+        O3DE_PYSIDE6_SHARED_LIBRARY_NAME="${${MY_NAME}_SYSTEM_LIBRARY}"
+        O3DE_SHIBOKEN6_SHARED_LIBRARY_NAME="${${MY_NAME}_SYSTEM_SHIBOKEN_LIBRARY}"
+)
+
 add_library(${MY_NAME}::Tools SHARED IMPORTED GLOBAL)
 
 ly_target_include_system_directories(TARGET ${MY_NAME}::Tools

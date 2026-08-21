@@ -68,7 +68,11 @@ if (${PAL_PLATFORM_NAME} STREQUAL "Linux")
     set(${MY}_LIBRARY_DEBUG   ${_ly_syspy_libdir}/${_ly_syspy_soname})
     set(${MY}_LIBRARY_RELEASE ${_ly_syspy_libdir}/${_ly_syspy_soname})
     set(${MY}_INCLUDE_DIR     ${_ly_syspy_include_dir})
-    set(${MY}_COMPILE_DEFINITIONS DEFAULT_LY_PYTHONHOME="${_ly_syspy_prefix}")
+    set(${MY}_COMPILE_DEFINITIONS
+        DEFAULT_LY_PYTHONHOME="${_ly_syspy_prefix}"
+        # Consumed by the Linux gem code that preloads libpython by name
+        # (EditorPythonBindings/QtForPython InitializePython headers).
+        O3DE_PYTHON_SHARED_LIBRARY_NAME="${_ly_syspy_soname}")
     set(${MY}_LIBRARY "$<IF:$<CONFIG:Debug>,${${MY}_LIBRARY_DEBUG},${${MY}_LIBRARY_RELEASE}>")
 
     if (NOT EXISTS ${${MY}_LIBRARY_RELEASE})

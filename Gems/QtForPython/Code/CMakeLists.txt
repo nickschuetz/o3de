@@ -52,6 +52,9 @@ ly_add_target(
     BUILD_DEPENDENCIES
         PRIVATE
             Gem::${gem_name}.Editor.Static
+            # for the library-name compile definitions consumed by
+            # Source/Platform/Linux/InitializeEmbeddedPyside.h
+            3rdParty::pyside6
     RUNTIME_DEPENDENCIES
         3rdParty::pyside6::Tools
         Gem::EditorPythonBindings.Editor
