@@ -108,8 +108,16 @@ then
 fi
 PYTHON_VENV_HASH=$(cat $PYTHON_VENV_HASH_FILE)
 
-# Calculate the expected hash from the current python package
-CURRENT_PYTHON_PACKAGE_HASH=$(cmake -P $DIR/get_python_package_hash.cmake $DIR/.. $PAL $ARCH)
+# Calculate the expected hash from the current python package. A venv hash of
+# the form system-python-<version> marks a venv created from the system
+# interpreter (LY_PYTHON_USE_SYSTEM); its expected value derives from the
+# system interpreter version rather than a downloaded package hash.
+if [[ "$PYTHON_VENV_HASH" == system-python-* ]]
+then
+    CURRENT_PYTHON_PACKAGE_HASH="system-python-$(python3 -c 'import sys; print("%d.%d.%d" % sys.version_info[:3])')"
+else
+    CURRENT_PYTHON_PACKAGE_HASH=$(cmake -P $DIR/get_python_package_hash.cmake $DIR/.. $PAL $ARCH)
+fi
 
 if [ "$PYTHON_VENV_HASH" != "$CURRENT_PYTHON_PACKAGE_HASH" ]
 then

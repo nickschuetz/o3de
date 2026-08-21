@@ -13,8 +13,13 @@ endif()
 # This will set python_package_name to whatever the package 'Python' is associated with
 ly_get_package_association(Python python_package_name)
 if (NOT python_package_name)
-    set(python_package_name "python-no-package-assocation-found")
-    message(WARNING "Python was not found in the package assocation list.  Did someone call ly_associate_package(xxxxxxx Python) ?")
+    if (LY_PYTHON_USE_SYSTEM)
+        # No 3rdParty python package in system-python mode
+        set(python_package_name "system-python")
+    else()
+        set(python_package_name "python-no-package-assocation-found")
+        message(WARNING "Python was not found in the package assocation list.  Did someone call ly_associate_package(xxxxxxx Python) ?")
+    endif()
 endif()
 
 

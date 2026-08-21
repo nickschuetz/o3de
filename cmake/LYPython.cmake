@@ -9,6 +9,12 @@
 include_guard()
 
 include(cmake/LySet.cmake)
+
+# Opt-in: use the host system's python interpreter (and the system builds of
+# python-adjacent 3rdParty modules such as pybind11 and pyside6) instead of
+# the downloaded 3rdParty python package. See cmake/3rdParty/SystemPython.
+option(LY_PYTHON_USE_SYSTEM "Use the system python interpreter instead of the O3DE 3rdParty python package" OFF)
+
 include(cmake/3rdPartyPackages.cmake)
 
 # this script exists to make sure a python interpreter is immediately available
@@ -90,8 +96,22 @@ function(ly_setup_python_venv)
         # a link to the shared library within the created virtual environment before proceeding with
         # the pip install command.
         message(STATUS "Creating Python venv at ${PYTHON_VENV_PATH}")
-        execute_process(COMMAND "${PYTHON_PACKAGES_ROOT_PATH}/${LY_PYTHON_PACKAGE_NAME}/${LY_PYTHON_BIN_PATH}/${LY_PYTHON_EXECUTABLE}" -m venv "${PYTHON_VENV_PATH}" --without-pip --clear
-                        WORKING_DIRECTORY "${PYTHON_PACKAGES_ROOT_PATH}/${LY_PYTHON_PACKAGE_NAME}/${LY_PYTHON_BIN_PATH}"
+        if (LY_PYTHON_USE_SYSTEM)
+            # Create the venv from the system interpreter. The venv gets
+            # access to the distro site-packages, which provide the python
+            # modules that the 3rdParty packages ship in the packaged mode
+            # (PySide6 and friends).
+            file(MAKE_DIRECTORY "${PYTHON_ROOT_PATH}")
+            set(_venv_base_python "${LY_PYTHON_SYSTEM_EXECUTABLE}")
+            set(_venv_extra_args --system-site-packages)
+            set(_venv_working_directory "${PYTHON_ROOT_PATH}")
+        else()
+            set(_venv_base_python "${PYTHON_PACKAGES_ROOT_PATH}/${LY_PYTHON_PACKAGE_NAME}/${LY_PYTHON_BIN_PATH}/${LY_PYTHON_EXECUTABLE}")
+            unset(_venv_extra_args)
+            set(_venv_working_directory "${PYTHON_PACKAGES_ROOT_PATH}/${LY_PYTHON_PACKAGE_NAME}/${LY_PYTHON_BIN_PATH}")
+        endif()
+        execute_process(COMMAND "${_venv_base_python}" -m venv "${PYTHON_VENV_PATH}" --without-pip --clear ${_venv_extra_args}
+                        WORKING_DIRECTORY "${_venv_working_directory}"
                         COMMAND_ECHO STDOUT
                         RESULT_VARIABLE command_result)
 
@@ -329,11 +349,24 @@ endfunction()
 # first time.
 
 
-# We need to download the associated Python package early and install the venv 
-ly_associate_package(PACKAGE_NAME ${LY_PYTHON_PACKAGE_NAME} TARGETS "Python" PACKAGE_HASH ${LY_PYTHON_PACKAGE_HASH})
-ly_set_package_download_location(${LY_PYTHON_PACKAGE_NAME} ${PYTHON_PACKAGES_ROOT_PATH})
-ly_set_package_download_cache_location(${LY_PYTHON_PACKAGE_NAME} ${PYTHON_PACKAGE_CACHE_ROOT_PATH})
-ly_download_associated_package(Python)
+# We need to download the associated Python package early and install the venv
+if (LY_PYTHON_USE_SYSTEM)
+    # No 3rdParty python package in system mode. Serve find_package(Python),
+    # find_package(pybind11) and find_package(pyside6) from the system find
+    # modules instead of the downloaded packages' find modules.
+    list(PREPEND CMAKE_MODULE_PATH ${LY_ROOT_FOLDER}/cmake/3rdParty/SystemPython)
+    if (EXISTS "${LY_ROOT_FOLDER}/python/requirements_system.txt")
+        # A reduced pin set for interpreters newer than the packaged one (the
+        # default pins predate current python releases and not all of them
+        # have wheels there).
+        ly_set(LY_PYTHON_DEFAULT_REQUIREMENTS_TXT "${LY_ROOT_FOLDER}/python/requirements_system.txt")
+    endif()
+else()
+    ly_associate_package(PACKAGE_NAME ${LY_PYTHON_PACKAGE_NAME} TARGETS "Python" PACKAGE_HASH ${LY_PYTHON_PACKAGE_HASH})
+    ly_set_package_download_location(${LY_PYTHON_PACKAGE_NAME} ${PYTHON_PACKAGES_ROOT_PATH})
+    ly_set_package_download_cache_location(${LY_PYTHON_PACKAGE_NAME} ${PYTHON_PACKAGE_CACHE_ROOT_PATH})
+    ly_download_associated_package(Python)
+endif()
 ly_setup_python_venv()
 
 if (NOT CMAKE_SCRIPT_MODE_FILE)

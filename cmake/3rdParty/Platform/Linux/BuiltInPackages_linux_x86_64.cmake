@@ -11,7 +11,11 @@
 # shared by other platforms:
 ly_associate_package(PACKAGE_NAME RapidJSON-1.1.0-rev1-multiplatform                TARGETS RapidJSON                   PACKAGE_HASH 2f5e26ecf86c3b7a262753e7da69ac59928e78e9534361f3d00c1ad5879e4023)
 ly_associate_package(PACKAGE_NAME RapidXML-1.13-rev1-multiplatform                  TARGETS RapidXML                    PACKAGE_HASH 4b7b5651e47cfd019b6b295cc17bb147b65e53073eaab4a0c0d20a37ab74a246)
-ly_associate_package(PACKAGE_NAME pybind11-2.10.0-rev1-multiplatform                TARGETS pybind11                    PACKAGE_HASH 6690acc531d4b8cd453c19b448e2fb8066b2362cbdd2af1ad5df6e0019e6c6c4)
+if (NOT LY_PYTHON_USE_SYSTEM)
+    # In system-python mode pybind11 comes from the system (it must match the
+    # system interpreter); see cmake/3rdParty/SystemPython/Findpybind11.cmake
+    ly_associate_package(PACKAGE_NAME pybind11-2.10.0-rev1-multiplatform            TARGETS pybind11                    PACKAGE_HASH 6690acc531d4b8cd453c19b448e2fb8066b2362cbdd2af1ad5df6e0019e6c6c4)
+endif()
 ly_associate_package(PACKAGE_NAME xxhash-0.7.4-rev1-multiplatform                   TARGETS xxhash                      PACKAGE_HASH e81f3e6c4065975833996dd1fcffe46c3cf0f9e3a4207ec5f4a1b564ba75861e)
 ly_associate_package(PACKAGE_NAME cityhash-1.1-multiplatform                        TARGETS cityhash                    PACKAGE_HASH 0ace9e6f0b2438c5837510032d2d4109125845c0efd7d807f4561ec905512dd2)
 
@@ -38,7 +42,12 @@ ly_associate_package(PACKAGE_NAME squish-ccr-deb557d-rev1-linux                 
 ly_associate_package(PACKAGE_NAME astc-encoder-3.2-rev2-linux                       TARGETS astc-encoder                PACKAGE_HASH 71549d1ca9e4d48391b92a89ea23656d3393810e6777879f6f8a9def2db1610c)
 ly_associate_package(PACKAGE_NAME ISPCTexComp-36b80aa-rev1-linux                    TARGETS ISPCTexComp                 PACKAGE_HASH 065fd12abe4247dde247330313763cf816c3375c221da030bdec35024947f259)
 ly_associate_package(PACKAGE_NAME lz4-1.9.4-rev2-linux                              TARGETS lz4                         PACKAGE_HASH 5d7e5d087c224dd26edb19deaa73673eefa2dc73f40d0709739e60f2ad35060b)
-ly_associate_package(PACKAGE_NAME pyside6-6.10.2-py3.10-rev5-linux                  TARGETS pyside6                     PACKAGE_HASH ae7778e7260da9170e4414deb7df02402f958c061ac408e3664d7ea16c95f025)
+if (NOT LY_PYTHON_USE_SYSTEM)
+    # In system-python mode pyside6/shiboken6 come from the system (they must
+    # match the system interpreter and the system Qt); see
+    # cmake/3rdParty/SystemPython/Findpyside6.cmake
+    ly_associate_package(PACKAGE_NAME pyside6-6.10.2-py3.10-rev5-linux              TARGETS pyside6                     PACKAGE_HASH ae7778e7260da9170e4414deb7df02402f958c061ac408e3664d7ea16c95f025)
+endif()
 ly_associate_package(PACKAGE_NAME SQLite-3.37.2-rev1-linux                          TARGETS SQLite                      PACKAGE_HASH bee80d6c6db3e312c1f4f089c90894436ea9c9b74d67256d8c1fb00d4d81fe46)
 ly_associate_package(PACKAGE_NAME AwsIotDeviceSdkCpp-1.15.2-rev1-linux              TARGETS AwsIotDeviceSdkCpp          PACKAGE_HASH 83fc1711404d3e5b2faabb1134e97cc92b748d8b87ff4ea99599d8c750b8eff0)
 ly_associate_package(PACKAGE_NAME vulkan-validationlayers-1.2.198-rev1-linux        TARGETS vulkan-validationlayers     PACKAGE_HASH 9195c7959695bcbcd1bc1dc5c425c14639a759733b3abe2ffa87eb3915b12c71)
