@@ -82,12 +82,27 @@ set_target_properties(${TARGET_WITH_NAMESPACE} PROPERTIES
 )
 
 # Consumed by the Linux QtForPython code that preloads the pyside/shiboken
-# libraries by name (InitializeEmbeddedPyside.h); full paths are valid dlopen
-# arguments and sidestep SOABI-tagged file names.
+# libraries by name (InitializeEmbeddedPyside.h). find_library returns the
+# development symlink (libX.so), which only exists when the -devel package is
+# installed; the baked-in name must be valid on machines with just the
+# runtime packages. The devel symlink points at the SONAME file name, so one
+# symlink step yields a name the loader resolves everywhere, and it stays
+# valid across patch updates of the library.
+function(_pyside6_preload_soname library_path out_var)
+    if (IS_SYMLINK "${library_path}")
+        file(READ_SYMLINK "${library_path}" _soname_target)
+        get_filename_component(_soname_target "${_soname_target}" NAME)
+    else()
+        get_filename_component(_soname_target "${library_path}" NAME)
+    endif()
+    set(${out_var} "${_soname_target}" PARENT_SCOPE)
+endfunction()
+_pyside6_preload_soname("${${MY_NAME}_SYSTEM_LIBRARY}" ${MY_NAME}_SYSTEM_LIBRARY_SONAME)
+_pyside6_preload_soname("${${MY_NAME}_SYSTEM_SHIBOKEN_LIBRARY}" ${MY_NAME}_SYSTEM_SHIBOKEN_LIBRARY_SONAME)
 target_compile_definitions(${TARGET_WITH_NAMESPACE}
     INTERFACE
-        O3DE_PYSIDE6_SHARED_LIBRARY_NAME="${${MY_NAME}_SYSTEM_LIBRARY}"
-        O3DE_SHIBOKEN6_SHARED_LIBRARY_NAME="${${MY_NAME}_SYSTEM_SHIBOKEN_LIBRARY}"
+        O3DE_PYSIDE6_SHARED_LIBRARY_NAME="${${MY_NAME}_SYSTEM_LIBRARY_SONAME}"
+        O3DE_SHIBOKEN6_SHARED_LIBRARY_NAME="${${MY_NAME}_SYSTEM_SHIBOKEN_LIBRARY_SONAME}"
 )
 
 add_library(${MY_NAME}::Tools SHARED IMPORTED GLOBAL)
