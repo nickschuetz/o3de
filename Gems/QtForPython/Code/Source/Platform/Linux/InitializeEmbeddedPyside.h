@@ -16,11 +16,10 @@ namespace QtForPython
     // built against. The build provides the O3DE_*_SHARED_LIBRARY_NAME macros
     // when the configured stack differs from the default 3rdParty packages
     // (e.g. LY_PYTHON_USE_SYSTEM); the literals match the packaged layout.
-#if defined(O3DE_PYTHON_SHARED_LIBRARY_NAME)
-    const char* s_libPythonLibraryFile = O3DE_PYTHON_SHARED_LIBRARY_NAME;
-#else
-    const char* s_libPythonLibraryFile = "libpython3.10.so.1.0";
+#if !defined(O3DE_PYTHON_SHARED_LIBRARY_NAME)
+    #error O3DE_PYTHON_SHARED_LIBRARY_NAME must be defined; it is wired from LY_PYTHON_SHARED_LIB in the gem CMakeLists.txt
 #endif
+    const char* s_libPythonLibraryFile = O3DE_PYTHON_SHARED_LIBRARY_NAME;
 #if defined(O3DE_PYSIDE6_SHARED_LIBRARY_NAME)
     const char* s_libPysideLibraryFile = O3DE_PYSIDE6_SHARED_LIBRARY_NAME;
 #else
